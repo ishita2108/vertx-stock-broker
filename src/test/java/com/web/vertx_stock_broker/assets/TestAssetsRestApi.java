@@ -24,12 +24,13 @@ public class TestAssetsRestApi {
   }
 
   @Test
-  void returns_all_assets(Vertx vertx, VertxTestContext testContext) throws Throwable {
+  void
+  returns_all_assets(Vertx vertx, VertxTestContext testContext) throws Throwable {
     var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
     client.get("/assets").send().onComplete(testContext.succeeding(response -> {
       var json = response.bodyAsJsonArray();
       LOG.info("Response: {}", json);
-      Assertions.assertEquals("[{\"name\":\"AAPL\"},{\"name\":\"AMZN\"},{\"name\":\"NFLX\"},{\"name\":\"TSLA\"}]", json.encode());
+      Assertions.assertEquals("[{\"name\":\"AAPL\"},{\"name\":\"AMZN\"},{\"name\":\"FB\"},{\"name\":\"GOOG\"},{\"name\":\"MSFT\"},{\"name\":\"NFLX\"},{\"name\":\"TSLA\"}]", json.encode());
       Assertions.assertEquals(200, response.statusCode());
       testContext.completeNow();
 
