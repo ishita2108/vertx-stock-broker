@@ -41,8 +41,6 @@ public class TestWatchListRestApi {
       LOG.info("Response PUT: {}", json);
       Assertions.assertEquals("{\"assets\":[{\"name\":\"AMZN\"},{\"name\":\"TSLA\"}]}", json.encode());
       Assertions.assertEquals(200, response.statusCode());
-      testContext.completeNow();
-
     })).compose(next ->  {
       client.get("/account/watchlist/" + accountId.toString())
         .send()
@@ -51,6 +49,7 @@ public class TestWatchListRestApi {
           LOG.info("Response GET : {} ", json);
           Assertions.assertEquals("{\"assets\":[{\"name\":\"AMZN\"},{\"name\":\"TSLA\"}]}", json.encode());
           Assertions.assertEquals(200, response.statusCode());
+          testContext.completeNow();
         }));
         return Future.succeededFuture();
     });
@@ -62,5 +61,29 @@ public class TestWatchListRestApi {
       new Asset("TSLA"))).toJsonObject();
   }
 
+  @Test
+  void add_and_delete_watchlist_for_account(Vertx vertx, VertxTestContext testContext) throws Throwable {
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var accountId = UUID.randomUUID();
+    client.put("/account/watchlist/" + accountId.toString())
+      .sendJsonObject(getBody())
+      .onComplete(testContext.succeeding(response -> {
+        var json = response.bodyAsJsonObject();
+        LOG.info("Response PUT: {}", json);
+        Assertions.assertEquals("{\"assets\":[{\"name\":\"AMZN\"},{\"name\":\"TSLA\"}]}", json.encode());
+        Assertions.assertEquals(200, response.statusCode());
+      })).compose(next -> {
+        client.delete("/account/watchlist/" + accountId.toString())
+          .send()
+          .onComplete(testContext.succeeding(response -> {
+            var json = response.bodyAsJsonObject();
+            LOG.info("Response DELETE : {} ", json);
+            Assertions.assertEquals("{\"assets\":[{\"name\":\"AMZN\"},{\"name\":\"TSLA\"}]}", json.encode());
+            Assertions.assertEquals(200, response.statusCode());
+            testContext.completeNow();
+          }));
+        return Future.succeededFuture();
+      });
 
+  }
 }
