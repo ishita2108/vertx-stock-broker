@@ -78,6 +78,18 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-config</artifactId>
+      <version>4.5.9</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-config-yaml</artifactId>
+      <version>4.5.9</version>
+    </dependency>
+
 
     <dependency>
       <groupId>io.vertx</groupId>

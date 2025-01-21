@@ -1,7 +1,9 @@
 package com.web.vertx_stock_broker.watchlist;
 
+import com.web.vertx_stock_broker.AbstractRestApiTest;
 import com.web.vertx_stock_broker.MainVerticle;
 import com.web.vertx_stock_broker.assets.Asset;
+import com.web.vertx_stock_broker.assets.TestAssetsRestApi;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -21,18 +23,13 @@ import java.util.Arrays;
 import java.util.UUID;
 
 @ExtendWith(VertxExtension.class)
-public class TestWatchListRestApi {
+public class TestWatchListRestApi extends AbstractRestApiTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestWatchListRestApi.class);
 
-  @BeforeEach
-  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle()).onComplete(testContext.succeeding(id -> testContext.completeNow()));
-  }
-
   @Test
   void add_and_returns_watchlist_for_account(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(TEST_SERVER_PORT));
     var accountId = UUID.randomUUID();
     client.put("/account/watchlist/" + accountId.toString())
       .sendJsonObject(getBody())
@@ -63,7 +60,7 @@ public class TestWatchListRestApi {
 
   @Test
   void add_and_delete_watchlist_for_account(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(TEST_SERVER_PORT));
     var accountId = UUID.randomUUID();
     client.put("/account/watchlist/" + accountId.toString())
       .sendJsonObject(getBody())

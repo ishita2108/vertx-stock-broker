@@ -1,6 +1,8 @@
 package com.web.vertx_stock_broker.assets;
 
+import com.web.vertx_stock_broker.AbstractRestApiTest;
 import com.web.vertx_stock_broker.MainVerticle;
+import com.web.vertx_stock_broker.config.ConfigLoader;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
@@ -15,23 +17,16 @@ import io.vertx.core.http.HttpHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(VertxExtension.class)
-public class TestAssetsRestApi {
-
+public class TestAssetsRestApi extends AbstractRestApiTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestAssetsRestApi.class);
-
-  @BeforeEach
-  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle()).onComplete(testContext.succeeding(id -> testContext.completeNow()));
-  }
 
   @Test
   void
   returns_all_assets(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(TEST_SERVER_PORT));
     client.get("/assets").send().onComplete(testContext.succeeding(response -> {
       var json = response.bodyAsJsonArray();
       LOG.info("Response: {}", json);

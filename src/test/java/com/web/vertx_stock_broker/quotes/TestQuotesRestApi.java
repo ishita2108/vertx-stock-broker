@@ -1,6 +1,8 @@
 package com.web.vertx_stock_broker.quotes;
 
+import com.web.vertx_stock_broker.AbstractRestApiTest;
 import com.web.vertx_stock_broker.MainVerticle;
+import com.web.vertx_stock_broker.assets.TestAssetsRestApi;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -14,19 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(VertxExtension.class)
-public class TestQuotesRestApi {
+public class TestQuotesRestApi extends AbstractRestApiTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestQuotesRestApi.class);
-
-  @BeforeEach
-  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-    vertx.deployVerticle(new MainVerticle()).onComplete(testContext.succeeding(id -> testContext.completeNow()));
-  }
 
   @Test
   void
   returns_quotes_for_asset(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(TEST_SERVER_PORT));
     client.get("/quotes/AMZN").send().onComplete(testContext.succeeding(response -> {
       var json = response.bodyAsJsonObject();
       LOG.info("Response: {}", json);
@@ -40,7 +37,7 @@ public class TestQuotesRestApi {
   @Test
   void
   returns_not_found_for_unknown_asset(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(MainVerticle.PORT));
+    var client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(TEST_SERVER_PORT));
     client.get("/quotes/UNKNOWN").send().onComplete(testContext.succeeding(response -> {
       var json = response.bodyAsJsonObject();
       LOG.info("Response: {}", json);
