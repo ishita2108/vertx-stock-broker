@@ -23,34 +23,14 @@ public class WatchListRestApi {
     final String path = "/account/watchlist/:accountId";
 
 
-    parent.get(path).handler(context -> {
-      var accountId = getAccountId(context);
-      var watchList = Optional.ofNullable(watchListPerAccount.get(UUID.fromString(accountId)));
-     if(watchList.isEmpty()){
-       context.response().setStatusCode(HttpResponseStatus.NOT_FOUND.code()).end(new JsonObject().put("message", "WatchList for account " + accountId + " not found!")
-         .put("path :" , context.normalizedPath()).toBuffer());
-     }
-     context.response().end(watchList.get().toJsonObject().toBuffer());
-    });
+    parent.get(path).handler(new GetWatchListHandler(watchListPerAccount));
 
-    parent.put(path).handler(context -> {
-      var accountId = getAccountId(context);
-      var jsonBody = context.getBodyAsJson();
-      var watchListJson = jsonBody.mapTo(WatchList.class);
-      watchListPerAccount.put(UUID.fromString(accountId),watchListJson );
-      context.response().end(jsonBody.toBuffer());
+    parent.put(path).handler(new PutWatchListHandler(watchListPerAccount));
 
-    });
-
-    parent.delete(path).handler(context -> {
-      var accountId =  getAccountId(context);
-      WatchList deleted= watchListPerAccount.remove(UUID.fromString(accountId));
-      LOG.info("Deleted {}, Remaining {} ", deleted.toJsonObject(),watchListPerAccount.values() );
-      context.response().end(deleted.toJsonObject().toBuffer());
-    });
+    parent.delete(path).handler(new DeleteWatchListHandler(watchListPerAccount));
   }
 
-  private static String getAccountId(RoutingContext context) {
+  static String getAccountId(RoutingContext context) {
     var accountId = context.pathParam("accountId");
     LOG.debug("{} for account {}", context.normalizedPath(), accountId);
     return accountId;

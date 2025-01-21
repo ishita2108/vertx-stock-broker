@@ -26,18 +26,7 @@ public class QuotesRestApi {
       cachedQuotes.put(symbol, initRandomQuote(symbol));
     });
 
-    parent.get("/quotes/:asset").handler(context ->{
-      final String assetParam = context.pathParam("asset");
-      LOG.debug("Asset Parameter {} ", assetParam);
-      var maybeQuote = Optional.ofNullable(cachedQuotes.get(assetParam));
-      if(maybeQuote.isEmpty()){
-        context.response().setStatusCode(HttpResponseStatus.NOT_FOUND.code()).end(new JsonObject().put("message", "Quote for Asset " + assetParam + " not found!")
-          .put("path ", context.normalizedPath()).toBuffer());
-      }
-      JsonObject response = maybeQuote.get().toJsonObject();
-      LOG.info("Path {} responds with {} ", context.normalizedPath(), response.encode());
-      context.response().end(response.toBuffer());
-    });
+    parent.get("/quotes/:asset").handler(new GetQuotesHandler(cachedQuotes));
   }
 
   private static Quote initRandomQuote(final String assetParam) {
