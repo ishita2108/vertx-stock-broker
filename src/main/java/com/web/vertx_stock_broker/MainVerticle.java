@@ -2,10 +2,7 @@ package com.web.vertx_stock_broker;
 
 import com.web.vertx_stock_broker.quotes.QuotesRestApi;
 import com.web.vertx_stock_broker.watchlist.WatchListRestApi;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -22,58 +19,24 @@ public class MainVerticle extends AbstractVerticle {
 
   public static void main(String[] args) {
     var vertx = Vertx.vertx();
-    vertx.exceptionHandler( error ->{
-      LOG.error("Unhandled: {} ", error);
-    });
-    vertx.deployVerticle(new MainVerticle(), ar ->{
-      if (ar.failed()) {
-        LOG.error("Failed to deploy: {} ", ar.cause());
-        return;
-      }
-      LOG.info("Deployed Main Verticle {} ", MainVerticle.class.getName());
-    });
+    vertx.exceptionHandler( error ->LOG.error("Unhandled: {} ", error));
+    vertx.deployVerticle(new MainVerticle())
+      .onFailure(err ->LOG.error("Failed to deploy: {} ", err))
+      .onSuccess(id ->  LOG.info("Deployed Main Verticle {} ", MainVerticle.class.getName()));
   }
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-
-    final Router restApi = Router.router(vertx);
-    restApi.route()
-      .handler(BodyHandler.create())
-      .failureHandler(handleFailure());
-    AssetsRestApi.attach(restApi);
-    QuotesRestApi.attach(restApi);
-    WatchListRestApi.attach(restApi);
-
-    vertx.createHttpServer().requestHandler(restApi
-//      req -> {
-//      req.response()
-//        .putHeader("content-type", "text/plain")
-//        .end("Hello from Vert.x!");
-//    }
-    ).exceptionHandler(error ->{
-      LOG.error("HTTP Server Error {} ",error);
-      })
-      .listen(PORT).onComplete(http -> {
-      if (http.succeeded()) {
-        startPromise.complete();
-        LOG.info("HTTP server started on port 8888");
-      } else {
-        startPromise.fail(http.cause());
-      }
+    vertx.deployVerticle(RestApiVerticle.class.getName(), new DeploymentOptions().setInstances(getProcessors()))
+      .onFailure(startPromise::fail).onSuccess(id -> {
+      LOG.info("Deployed {} with id {} ", RestApiVerticle.class.getName(), id);
+      startPromise.complete();
     });
   }
 
-  private static Handler<RoutingContext> handleFailure() {
-    return errorContext -> {
-      if (errorContext.response().ended()) {
-        //ignore it
-        return;
-      }
-      LOG.error("Route Error: ", errorContext.failure());
-      errorContext.response()
-        .setStatusCode(500)
-        .end(new JsonObject().put("message", "Something went wrong :(").toBuffer());
-    };
+  private static int getProcessors() {
+    return Math.max(1,Runtime.getRuntime().availableProcessors()/2);
   }
+
+
 }
